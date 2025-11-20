@@ -1,0 +1,7 @@
+codecarbon==3.1.0
+torch==2.9.1
+torchvision==0.24.1
+tqdm==4.67.1
+matplotlib==3.10.7
+seaborn==0.13.2
+transformers==4.57.1
