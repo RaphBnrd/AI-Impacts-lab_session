@@ -3,10 +3,12 @@ from datetime import datetime
 import pandas as pd
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from models import CVAE_CNN, CVAE_MLP
 
 # ------------------------------------
 # TRAINING AND EVALUATION UTILITIES
@@ -240,3 +242,64 @@ def plot_time_vs_parameters(results_summary):
     plt.legend(title="Model")
     plt.grid()
     plt.show()
+
+# ------------------------------------
+# Conditional VAE Models
+# ------------------------------------
+
+def vae_loss(x_hat, x, mu, logvar):
+    B = x.size(0)
+    recon = F.binary_cross_entropy(x_hat, x, reduction='sum')
+    kl = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return (recon + kl) / B
+
+def train_cvae(model, dataloader, epochs=10, lr=1e-3, device="cpu"):
+    model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    for epoch in range(epochs):
+        total_loss = 0
+
+        for x, y in dataloader:
+            x = x.to(device)
+            y = y.to(device)
+            y_onehot = F.one_hot(y, num_classes=model.num_classes).float().to(device)
+
+            optimizer.zero_grad()
+            if isinstance(model, CVAE_CNN):
+                x_hat, mu, logvar = model(x, y)
+            elif isinstance(model, CVAE_MLP):
+                x_hat, mu, logvar = model(x, y_onehot)
+            loss = vae_loss(x_hat, x, mu, logvar)
+            loss.backward()
+            optimizer.step()
+
+            total_loss += loss.item()
+
+        print(f"Epoch {epoch+1} | loss = {total_loss / len(dataloader.dataset):.4f}")
+
+def generate_digit(model, n_samples=8, device="cpu"):
+    all_imgs = []
+    model.eval()
+    for digit in range(10):
+        with torch.no_grad():
+            y = torch.full((n_samples,), digit, dtype=torch.long).to(device)
+            y_onehot = F.one_hot(y, num_classes=10).float()
+            z = torch.randn(n_samples, model.latent_dim).to(device)
+            if isinstance(model, CVAE_CNN):
+                imgs = model.decode(z, y).cpu()
+            elif isinstance(model, CVAE_MLP):
+                imgs = model.decode(z, y_onehot).cpu()
+            all_imgs.append(imgs)
+    
+    scale = 0.7
+    plt.figure(figsize=(n_samples*scale, 10*scale))
+    for digit in range(10):
+        imgs = all_imgs[digit]
+        for i in range(n_samples):
+            plt.subplot(10,n_samples,digit*n_samples+i+1)
+            plt.imshow(imgs[i].squeeze(), cmap="gray")
+            plt.axis("off")
+    plt.show()
+
+    return imgs
