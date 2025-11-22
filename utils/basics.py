@@ -202,14 +202,21 @@ def experiment_classif_simple(model, train_loader, test_loader, nbr_epochs=5, lr
 # PLOTTING UTILITIES
 # ------------------------------------
 
-def plot_examples_classification(model, data_loader, device, n=5, suptitle=None):
+def plot_examples_classification(model, dataset, device, n=5, suptitle=None):
     model.to(device)
     model.eval()
-    data_iter = next(iter(data_loader))
-    images, labels = data_iter[0][:n], data_iter[1][:n]
-    images, labels = images.to(device), labels.to(device)
-    outputs = model(images)
-    _, preds = torch.max(outputs, 1)
+    idxs = torch.randperm(len(dataset))[:n]
+    images = []
+    labels = []
+    for idx in idxs:
+        img, lbl = dataset[idx]
+        images.append(img)
+        labels.append(lbl)
+    images = torch.stack(images).to(device)
+    labels = torch.tensor(labels).to(device)
+    with torch.no_grad():
+        outputs = model(images)
+        _, preds = torch.max(outputs, 1)
 
     plt.figure(figsize=(n*2, 3))
     for i in range(n):
@@ -222,35 +229,34 @@ def plot_examples_classification(model, data_loader, device, n=5, suptitle=None)
     plt.tight_layout()
     plt.show()
 
-def plot_wrong_classification(model, data_loader, device, n=5, suptitle=None):
+def plot_wrong_classification(model, dataset, device, n=5, max_attempts=10000, suptitle=None):
     model.eval()
-    wrong_images = []
-    wrong_labels = []
-    wrong_preds = []
-    with torch.no_grad():
-        for images, labels in data_loader:
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
-            _, preds = torch.max(outputs, 1)
-            for i in range(len(labels)):
-                if preds[i] != labels[i]:
-                    wrong_images.append(images[i].cpu())
-                    wrong_labels.append(labels[i].item())
-                    wrong_preds.append(preds[i].item())
-                if len(wrong_images) >= n:
-                    break
-            if len(wrong_images) >= n:
-                break
-    if len(wrong_images) == 0:
-        print("No wrong classifications found.")
+    # Search for wrong classifications
+    wrong = []
+    attempts = 0
+    N = len(dataset)
+    while len(wrong) < n and attempts < max_attempts:
+        idx = np.random.randint(0, N)
+        img, lbl = dataset[idx]
+        img_gpu = img.unsqueeze(0).to(device)
+
+        with torch.no_grad():
+            pred = model(img_gpu).argmax(dim=1).item()
+        if pred != lbl:
+            wrong.append((img, lbl, pred))
+        attempts += 1
+
+    if len(wrong) == 0:
+        print("No wrong classifications found (within attempts).")
         return
-    elif len(wrong_images) < n:
-        n = len(wrong_images)
+    elif len(wrong) < n:
+        print(f"Only found {len(wrong)} wrong classifications (within attempts).")
+        n = len(wrong)
     plt.figure(figsize=(n*2, 3))
-    for i in range(n):
+    for i, (img, lbl, pred) in enumerate(wrong):
         plt.subplot(1, n, i+1)
-        plt.imshow(wrong_images[i].squeeze(), cmap='gray')
-        plt.title(f"Pred: {wrong_preds[i]}, True: {wrong_labels[i]}")
+        plt.imshow(img.squeeze(), cmap='gray')
+        plt.title(f"Pred: {pred}, True: {lbl}")
         plt.axis('off')
     if suptitle:
         plt.suptitle(suptitle)

@@ -31,13 +31,13 @@ def import_MNIST(batch_size_train=64):
     test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
     # Plot examples of digits (with true labels)
-    examples = enumerate(test_loader)
-    batch_idx, (example_data, example_targets) = next(examples)
+    n = 5
+    idxs = torch.randperm(len(test_dataset))[:n]
     fig = plt.figure()
-    for i in range(5):
+    for i in range(n):
         plt.subplot(1, 5, i + 1)
-        plt.imshow(example_data[i].cpu().squeeze(), cmap='gray')
-        plt.title(f"True: {example_targets[i].item()}")
+        plt.imshow(test_dataset[idxs[i]][0].cpu().squeeze(), cmap='gray')
+        plt.title(f"True: {test_dataset[idxs[i]][1]}")
         plt.axis("off")
     plt.tight_layout()
 
