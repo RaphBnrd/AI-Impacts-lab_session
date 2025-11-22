@@ -1,3 +1,5 @@
 .venv/
+.emissions_logs/
 **/__pycache__/
+**/.DS_Store
 data/
