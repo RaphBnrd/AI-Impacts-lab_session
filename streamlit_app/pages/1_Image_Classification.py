@@ -23,7 +23,7 @@ from utils.models import SimpleMLP, SimpleCNN
 # --------------------------------------------------------------------
 # PAGE TITLE
 # --------------------------------------------------------------------
-st.title("🏷️ Image Classification — Experiments Dashboard")
+st.title("🏷️ Image Classification")
 
 # --------------------------------------------------------------------
 # LOAD MNIST

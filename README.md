@@ -3,9 +3,10 @@
 To get started, create and activate a virtual environment, then install the required dependencies:
 
 ```bash
-python3 -m venv .venv
+pip3 install uv
+uv venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
 *NB: To exit the virtual environment later, simply run: `deactivate`*
