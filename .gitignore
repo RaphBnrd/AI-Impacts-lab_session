@@ -3,3 +3,6 @@
 **/__pycache__/
 **/.DS_Store
 data/
+powermetrics_log.txt
+checkpoints/
+checkpoints.zip

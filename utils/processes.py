@@ -30,28 +30,32 @@ def import_MNIST(batch_size_train=64):
     train_loader = DataLoader(train_dataset, batch_size=batch_size_train, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=1000, shuffle=False)
 
-    # Plot examples of digits (with true labels)
-    n = 5
-    idxs = torch.randperm(len(test_dataset))[:n]
-    fig = plt.figure()
-    for i in range(n):
-        plt.subplot(1, 5, i + 1)
-        plt.imshow(test_dataset[idxs[i]][0].cpu().squeeze(), cmap='gray')
-        plt.title(f"True: {test_dataset[idxs[i]][1]}")
-        plt.axis("off")
-    plt.tight_layout()
+    plot_example_images(test_dataset, n=5)
 
     return train_loader, test_loader, train_dataset, test_dataset
 
+def plot_example_images(dataset, n=5):
+    # Plot examples of digits (with true labels)
+    idxs = torch.randperm(len(dataset))[:n]
+    fig = plt.figure()
+    for i in range(n):
+        plt.subplot(1, 5, i + 1)
+        plt.imshow(dataset[idxs[i]][0].cpu().squeeze(), cmap='gray')
+        plt.title(f"True: {dataset[idxs[i]][1]}")
+        plt.axis("off")
+    plt.tight_layout()
+    return fig
+
 
 def expe_simple_MLP(hidden_dims_tested, train_loader, test_loader,
-                    device, nbr_epochs=10):
+                    device, nbr_epochs=10, 
+                    streamlit_progress=None, streamlit_text=None, streamlit_run_name=None):
     all_res_epochs_mlp = []
     all_summaries_mlp = []
     all_models_mlp = []
     all_labels_mlp = []
 
-    for hidden_dims in hidden_dims_tested:
+    for idx, hidden_dims in enumerate(hidden_dims_tested):
         print(f"> Training SimpleMLP with hidden dimensions: {hidden_dims}")
         
         label = f"SimpleMLP_{'_'.join(map(str, hidden_dims))}"
@@ -72,7 +76,10 @@ def expe_simple_MLP(hidden_dims_tested, train_loader, test_loader,
             df_res_epochs, output_summary = experiment_classif_simple(
                 model, train_loader, test_loader,
                 nbr_epochs=nbr_epochs, device=device, run_name=label,
-                track_emissions=True
+                track_emissions=True, 
+                streamlit_progress=streamlit_progress, streamlit_text=streamlit_text,
+                streamlit_run_name=streamlit_run_name + ' ('+','.join(map(str, hidden_dims))+')',
+                streamlit_n_expe=len(hidden_dims_tested), streamlit_i_current_expe=idx
             )
             # Save the model and results
             os.makedirs(folder_path, exist_ok=True)
@@ -90,13 +97,14 @@ def expe_simple_MLP(hidden_dims_tested, train_loader, test_loader,
 
 
 def expe_simple_CNN(hidden_channels_tested, train_loader, test_loader,
-                    device, nbr_epochs=10):
+                    device, nbr_epochs=10, 
+                    streamlit_progress=None, streamlit_text=None, streamlit_run_name=None):
     all_res_epochs_cnn = []
     all_summaries_cnn = []
     all_models_cnn = []
     all_labels_cnn = []
 
-    for hidden_chans in hidden_channels_tested:
+    for idx, hidden_chans in enumerate(hidden_channels_tested):
         print(f"> Training SimpleCNN with hidden channels: {hidden_chans}")
         
         label = f"SimpleCNN_{'_'.join(map(str, hidden_chans))}"
@@ -116,7 +124,10 @@ def expe_simple_CNN(hidden_channels_tested, train_loader, test_loader,
             df_res_epochs, output_summary = experiment_classif_simple(
                 model, train_loader, test_loader,
                 nbr_epochs=nbr_epochs, device=device, run_name=label,
-                track_emissions=True
+                track_emissions=True,
+                streamlit_progress=streamlit_progress, streamlit_text=streamlit_text,
+                streamlit_run_name=streamlit_run_name + ' ('+','.join(map(str, hidden_chans))+')',
+                streamlit_n_expe=len(hidden_channels_tested), streamlit_i_current_expe=idx
             )
             os.makedirs(folder_path, exist_ok=True)
             df_res_epochs.to_json(f'{folder_path}res_epochs.json')

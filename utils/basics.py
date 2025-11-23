@@ -1,4 +1,5 @@
 from tqdm import tqdm
+import re
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -86,7 +87,9 @@ def evaluate(model, data_loader, criterion, device):
     return loss, accuracy
 
 def full_train(model, train_loader, test_loader, criterion, optimizer, 
-               nbr_epochs=5, device='cpu', tracker=None):
+               nbr_epochs=5, device='cpu', tracker=None, 
+               streamlit_progress=None, streamlit_text=None, streamlit_run_name=None,
+               streamlit_n_expe=None, streamlit_i_current_expe=None):
     # Setup metrics logging
     train_losses, test_losses = [], []
     train_accuracies, test_accuracies = [], []
@@ -127,6 +130,18 @@ def full_train(model, train_loader, test_loader, criterion, optimizer,
         test_losses.append(test_loss)
         train_accuracies.append(train_accuracy)
         test_accuracies.append(test_accuracy)
+        if streamlit_progress is not None:
+            streamlit_progress.progress(
+                (epoch + 1) / nbr_epochs / streamlit_n_expe
+                + (streamlit_i_current_expe / streamlit_n_expe)
+            )
+        if streamlit_text is not None:
+            streamlit_text.text(
+                f"Running experiment: {streamlit_run_name}\n" +
+                f"Epoch {epoch+1}/{nbr_epochs} | "
+                f"Train Loss: {train_loss:.4f}, Train Acc: {train_accuracy:.2f}% | "
+                f"Test Loss: {test_loss:.4f}, Test Acc: {test_accuracy:.2f}%"
+            )
     # Format output dataframe
     output = pd.DataFrame({
         "epochs": range(nbr_epochs + 1),
@@ -156,7 +171,9 @@ def full_train(model, train_loader, test_loader, criterion, optimizer,
 # ------------------------------------
 
 def experiment_classif_simple(model, train_loader, test_loader, nbr_epochs=5, lr=0.001, 
-                              run_name="", device='cpu', track_emissions=False):
+                              run_name="", device='cpu', track_emissions=False, 
+                              streamlit_progress=None, streamlit_text=None, streamlit_run_name=None, 
+                              streamlit_n_expe=None, streamlit_i_current_expe=None):
     # Count parameters
     nbr_parameters = sum(p.numel() for p in model.parameters())
     # Setup
@@ -173,7 +190,10 @@ def experiment_classif_simple(model, train_loader, test_loader, nbr_epochs=5, lr
     # Training
     df_res_epochs = full_train(
         model, train_loader, test_loader, criterion, optimizer, 
-        nbr_epochs=nbr_epochs, device=device, tracker=tracker
+        nbr_epochs=nbr_epochs, device=device, tracker=tracker,
+        streamlit_progress=streamlit_progress, streamlit_text=streamlit_text,
+        streamlit_run_name=streamlit_run_name, streamlit_n_expe=streamlit_n_expe,
+        streamlit_i_current_expe=streamlit_i_current_expe
     )
     # Log emissions from tracker
     if track_emissions:
@@ -198,6 +218,28 @@ def experiment_classif_simple(model, train_loader, test_loader, nbr_epochs=5, lr
     
     return df_res_epochs, output_summary
 
+
+def sort_keys_expe(name):
+    # 1) Model family priority
+    if "SimpleMLP" in name:
+        family = 0
+    elif "SimpleCNN" in name:
+        family = 1
+    else:
+        family = 2   # Everything else
+    # 2) Split by "_"
+    parts = name.split("_")
+    underscore_count = len(parts) - 1 # Count of "_" defines complexity of the model
+    # 3) Extract numeric suffixes for numeric sorting
+    numeric_parts = []
+    for p in parts[1:]:  # skip the "SimpleMLP" or "SimpleCNN"
+        if p.isdigit():
+            numeric_parts.append(int(p))
+        else:
+            numeric_parts.append(float("inf")) # fallback if not numeric
+    return (family, underscore_count, *numeric_parts)
+
+
 # ------------------------------------
 # PLOTTING UTILITIES
 # ------------------------------------
@@ -218,16 +260,16 @@ def plot_examples_classification(model, dataset, device, n=5, suptitle=None):
         outputs = model(images)
         _, preds = torch.max(outputs, 1)
 
-    plt.figure(figsize=(n*2, 3))
+    fig = plt.figure(figsize=(n*2, 3))
     for i in range(n):
         plt.subplot(1, n, i+1)
         plt.imshow(images[i].cpu().squeeze(), cmap='gray')
         plt.title(f"Pred: {preds[i].item()}, True: {labels[i].item()}")
         plt.axis('off')
     if suptitle:
-        plt.suptitle(suptitle)
+        fig.suptitle(suptitle)
     plt.tight_layout()
-    plt.show()
+    return fig
 
 def plot_wrong_classification(model, dataset, device, n=5, max_attempts=10000, suptitle=None):
     model.eval()
@@ -252,16 +294,16 @@ def plot_wrong_classification(model, dataset, device, n=5, max_attempts=10000, s
     elif len(wrong) < n:
         print(f"Only found {len(wrong)} wrong classifications (within attempts).")
         n = len(wrong)
-    plt.figure(figsize=(n*2, 3))
+    fig = plt.figure(figsize=(n*2, 3))
     for i, (img, lbl, pred) in enumerate(wrong):
         plt.subplot(1, n, i+1)
         plt.imshow(img.squeeze(), cmap='gray')
         plt.title(f"Pred: {pred}, True: {lbl}")
         plt.axis('off')
     if suptitle:
-        plt.suptitle(suptitle)
+        fig.suptitle(suptitle)
     plt.tight_layout()
-    plt.show()
+    return fig
 
 def plot_loss_acc_over_epochs(all_res_epochs, all_labels, palette):
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
