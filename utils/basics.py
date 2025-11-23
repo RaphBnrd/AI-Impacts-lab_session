@@ -380,7 +380,7 @@ def vae_loss(x_hat, x, mu, logvar):
     return (recon + kl) / B
 
 def train_cvae(model, dataloader, epochs=10, lr=1e-3, device="cpu", 
-               track_emissions=False):
+               track_emissions=False, streamlit_progress=None, streamlit_text=None):
     # Setup
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -410,6 +410,12 @@ def train_cvae(model, dataloader, epochs=10, lr=1e-3, device="cpu",
             # Log loss
             total_loss += loss.item()
         print(f"Epoch {epoch+1} | loss = {total_loss / len(dataloader.dataset):.4f}")
+        if streamlit_progress is not None:
+            streamlit_progress.progress((epoch + 1) / epochs)
+        if streamlit_text is not None:
+            streamlit_text.text(
+                f"Epoch {epoch+1}/{epochs} | loss = {total_loss / len(dataloader.dataset):.4f}"
+            )
     # Track time
     total_training_time = datetime.now() - t_start
     print(f"Total training time: {total_training_time}")
@@ -420,7 +426,7 @@ def train_cvae(model, dataloader, epochs=10, lr=1e-3, device="cpu",
         emission_info["total_training_time_sec"] = total_training_time.total_seconds()
         return emission_info
 
-def generate_digit_cvae(model, n_samples=8, device="cpu", track_emissions=False):
+def generate_digit_cvae(model, n_samples=8, device="cpu", track_emissions=False, plot=True):
     # Setup emissions tracker
     if track_emissions:
         tracker = EmissionsTracker(save_to_file=False, log_level='error')
@@ -444,20 +450,28 @@ def generate_digit_cvae(model, n_samples=8, device="cpu", track_emissions=False)
         _ = tracker.stop()
         emission_info = get_impact_tracker(tracker, verbose=False)
     # Plot generated digits
-    scale = 0.7
-    plt.figure(figsize=(n_samples*scale, 10*scale))
-    for digit in range(10):
-        imgs = all_imgs[digit]
-        for i in range(n_samples):
-            plt.subplot(10,n_samples,digit*n_samples+i+1)
-            plt.imshow(imgs[i].squeeze(), cmap="gray")
-            plt.axis("off")
-    plt.show()
+    if plot:
+        _ = plot_generate_digit(all_imgs)
+        plt.show()
 
     if track_emissions:
-        return imgs, emission_info
+        return all_imgs, emission_info
     else:
-        return imgs
+        return all_imgs
+    
+def plot_generate_digit(all_imgs):
+    digits = len(all_imgs)
+    n_samples = max(imgs.shape[0] for imgs in all_imgs)
+    scale = 0.7
+    fig = plt.figure(figsize=(n_samples*scale, digits*scale))
+    for digit in range(digits):
+        imgs = all_imgs[digit]
+        for i in range(n_samples):
+            plt.subplot(digits, n_samples, digit*n_samples + i + 1)
+            if i < imgs.shape[0]:
+                plt.imshow(imgs[i].squeeze(), cmap="gray")
+            plt.axis("off")
+    return fig
 
 # ------------------------------------
 # OTHER SIMPLE GENERATION MODELS
@@ -482,7 +496,7 @@ def train_PCA(X_train, y_train, n_components=50, track_emissions=False):
     else:
         return all_pcas
 
-def generate_digit_pca(all_pcas, n_samples=8, track_emissions=False):
+def generate_digit_pca(all_pcas, n_samples=8, track_emissions=False, plot=True):
     if track_emissions:
         tracker = EmissionsTracker(save_to_file=False, log_level='error')
         tracker.start()
@@ -497,16 +511,11 @@ def generate_digit_pca(all_pcas, n_samples=8, track_emissions=False):
     if track_emissions:
         _ = tracker.stop()
         emission_info = get_impact_tracker(tracker, verbose=False)
-    # Plot
-    scale = 0.7
-    plt.figure(figsize=(n_samples*scale, 10*scale))
-    for digit in range(10):
-        imgs = all_imgs[digit]
-        for i in range(n_samples):
-            plt.subplot(10, n_samples, digit*n_samples + i + 1)
-            plt.imshow(imgs[i], cmap='gray')
-            plt.axis('off')
-    plt.show()
+    # Plot generated digits
+    if plot:
+        _ = plot_generate_digit(all_imgs)
+        plt.show()
+    
     if track_emissions:
         return all_imgs, emission_info
     else:
@@ -529,7 +538,7 @@ def train_proba_pixel(X_train, y_train, track_emissions=False):
     else:
         return all_p
 
-def generate_digit_proba_pixel(all_p, n_samples=8, track_emissions=False):
+def generate_digit_proba_pixel(all_p, n_samples=8, track_emissions=False, plot=True):
     if track_emissions:
         tracker = EmissionsTracker(save_to_file=False, log_level='error')
         tracker.start()
@@ -541,16 +550,11 @@ def generate_digit_proba_pixel(all_p, n_samples=8, track_emissions=False):
     if track_emissions:
         _ = tracker.stop()
         emission_info = get_impact_tracker(tracker, verbose=False)
-    # Plot
-    scale=0.7
-    plt.figure(figsize=(n_samples*scale, 10*scale))
-    for digit in range(10):
-        imgs = all_imgs[digit]
-        for i in range(n_samples):
-            plt.subplot(10, n_samples, digit*n_samples + i + 1)
-            plt.imshow(imgs[i], cmap='gray')
-            plt.axis('off')
-    plt.show()
+    # Plot generated digits
+    if plot:
+        _ = plot_generate_digit(all_imgs)
+        plt.show()
+    
     if track_emissions:
         return all_imgs, emission_info
     else:

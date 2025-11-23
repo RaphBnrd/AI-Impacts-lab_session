@@ -280,7 +280,10 @@ else:
     )
     x_col = label_to_col[x_label]
     y_col = label_to_col[y_label]
-    
+
+    use_log_x1 = col1.checkbox("Log scale (X-axis)", value=False)
+    use_log_y1 = col2.checkbox("Log scale (Y-axis)", value=False)
+
     # Plot Interactive Scatter
     fig = px.scatter(
         summaries,
@@ -296,6 +299,11 @@ else:
         labels=labels,
         title=f"{x_label} vs {y_label}"
     )
+    fig.update_layout(
+        xaxis=dict(type="log" if use_log_x1 else "linear"),
+        yaxis=dict(type="log" if use_log_y1 else "linear")
+    )
+
 
     st.plotly_chart(fig, width='stretch')
 
@@ -366,6 +374,8 @@ else:
     )
     y_col_epoch = label_to_col[y_label_epoch]
 
+    use_log_y2 = col1.checkbox("Log scale (Y-axis)", value=False, key="log_y2")
+
     fig_epoch = go.Figure()
 
     # Iterate over each unique run
@@ -401,7 +411,8 @@ else:
         xaxis_title="Epochs",
         yaxis_title=y_label_epoch,
         legend_title="Run Name",
-        template="plotly_white"
+        template="plotly_white",
+        yaxis_type="log" if use_log_y2 else "linear"
     )
 
     st.plotly_chart(fig_epoch, width='stretch')

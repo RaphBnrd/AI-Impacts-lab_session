@@ -143,17 +143,24 @@ def expe_simple_CNN(hidden_channels_tested, train_loader, test_loader,
     return all_res_epochs_cnn, all_summaries_cnn, all_models_cnn, all_labels_cnn
 
 
-def train_cvae_MLP(hidden_dims, latent_dim, train_loader, device, nbr_epochs=10):
+def train_cvae_MLP(hidden_dims, latent_dim, train_loader, device, nbr_epochs=10, 
+                   streamlit_progress=None, streamlit_text=None, streamlit_status=None):
 
     cvae_mlp = CVAE_MLP(hidden_dims=hidden_dims, latent_dim=latent_dim)
 
     num_params = sum(p.numel() for p in cvae_mlp.parameters() if p.requires_grad)
     print(f"CVAE_MLP number of parameters: {num_params}")
 
-    folder_path = f'checkpoints/{str(device)}-CVAE_MLP_{"_".join(map(str, hidden_dims))}_latent{latent_dim}/'
+    folder_path = f'checkpoints/{str(device)}-CVAE_MLP_{"_".join(map(str, hidden_dims))}_latent{latent_dim}-epochs{nbr_epochs}/'
 
     if os.path.exists(folder_path + 'model.pth'):
         print("Loading pre-trained CVAE_MLP model.")
+        if streamlit_status:
+            streamlit_status.info("Loading pre-trained CVAE_MLP model.")
+        if streamlit_progress:
+            streamlit_progress.empty()
+        if streamlit_text: # Show the number of epochs completed
+            streamlit_text.write(f"Epochs completed: {nbr_epochs}")
         # Load model and results
         cvae_mlp.load_state_dict(
             torch.load(folder_path + 'model.pth', map_location=device)
@@ -162,7 +169,8 @@ def train_cvae_MLP(hidden_dims, latent_dim, train_loader, device, nbr_epochs=10)
             emission_train_cvae_mlp = json.load(f)
     else:
         emission_train_cvae_mlp = train_cvae(
-            cvae_mlp, train_loader, epochs=nbr_epochs, device=device, track_emissions=True
+            cvae_mlp, train_loader, epochs=nbr_epochs, device=device, track_emissions=True,
+            streamlit_progress=streamlit_progress, streamlit_text=streamlit_text
         )
         # Save model and results
         os.makedirs(folder_path, exist_ok=True)
@@ -182,17 +190,24 @@ def train_cvae_MLP(hidden_dims, latent_dim, train_loader, device, nbr_epochs=10)
     return cvae_mlp, emission_train_cvae_mlp
 
 
-def train_cvae_CNN(hidden_channels, latent_dim, train_loader, device, nbr_epochs=10):
+def train_cvae_CNN(hidden_channels, latent_dim, train_loader, device, nbr_epochs=10,
+                   streamlit_progress=None, streamlit_text=None, streamlit_status=None):
 
     cvae_cnn = CVAE_CNN(hidden_channels=hidden_channels, latent_dim=latent_dim)
 
     num_params = sum(p.numel() for p in cvae_cnn.parameters() if p.requires_grad)
     print(f"CVAE_CNN number of parameters: {num_params}")
 
-    folder_path = f'checkpoints/{str(device)}-CVAE_CNN_{"_".join(map(str, hidden_channels))}_latent{latent_dim}/'
+    folder_path = f'checkpoints/{str(device)}-CVAE_CNN_{"_".join(map(str, hidden_channels))}_latent{latent_dim}-epochs{nbr_epochs}/'
 
     if os.path.exists(folder_path + 'model.pth'):
         print("Loading pre-trained CVAE_CNN model.")
+        if streamlit_status:
+            streamlit_status.info("Loading pre-trained CVAE_CNN model.")
+        if streamlit_progress:
+            streamlit_progress.empty()
+        if streamlit_text: # Show the number of epochs completed
+            streamlit_text.write(f"Epochs completed: {nbr_epochs}")
         # Load model and results
         cvae_cnn.load_state_dict(
             torch.load(folder_path + 'model.pth', map_location=device)
@@ -201,7 +216,8 @@ def train_cvae_CNN(hidden_channels, latent_dim, train_loader, device, nbr_epochs
             emission_train_cvae_cnn = json.load(f)
     else:
         emission_train_cvae_cnn = train_cvae(
-            cvae_cnn, train_loader, epochs=nbr_epochs, device=device, track_emissions=True
+            cvae_cnn, train_loader, epochs=nbr_epochs, device=device, track_emissions=True,
+            streamlit_progress=streamlit_progress, streamlit_text=streamlit_text
         )
         # Save model and results
         os.makedirs(folder_path, exist_ok=True)
