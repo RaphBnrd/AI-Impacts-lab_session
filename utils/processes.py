@@ -3,7 +3,7 @@ import json
 import pandas as pd
 import torch
 
-from utils.basics import experiment_classif_simple, train_cvae
+from utils.basics import experiment_classif_simple, train_cvae, get_impact_tracker
 
 from utils.models import SimpleMLP, SimpleCNN, CVAE_MLP, CVAE_CNN
 from torchvision import datasets, transforms
@@ -237,7 +237,7 @@ def train_cvae_CNN(hidden_channels, latent_dim, train_loader, device, nbr_epochs
     return cvae_cnn, emission_train_cvae_cnn
 
 
-def inference_bert(text, model, tokenizer, device, max_length=200):
+def inference_bert(text, model, tokenizer, device):
 
     tracker_bert = EmissionsTracker(save_to_file=False, log_level='error')
     tracker_bert.start()
@@ -260,13 +260,14 @@ def inference_bert(text, model, tokenizer, device, max_length=200):
     predicted_token = tokenizer.decode(predicted_token_id)
     
     emission_bert = tracker_bert.stop()
+    emission_info_bert = get_impact_tracker(tracker_bert, verbose=False)
     print("\n--------------------------------\n")
     print(f"Original text: {text}")
     print(f"Predicted token (top {top_k}): {str_top_k}")
     print(f"Filled sentence: {text.replace(tokenizer.mask_token, predicted_token)}")
     print(f"\n  > BERT Prediction Emissions: {emission_bert:.2e} kg CO2eq")
 
-    return predicted_token, emission_bert
+    return predicted_token, emission_info_bert
 
 
 def generate_gpt2(prompt, gpt2_model, gpt2_tokenizer, device, max_length=200):
@@ -291,11 +292,12 @@ def generate_gpt2(prompt, gpt2_model, gpt2_tokenizer, device, max_length=200):
         )
 
     generated_text = gpt2_tokenizer.decode(output_ids[0], skip_special_tokens=True)
-    
+    nbr_tokens_generated = len(output_ids[0])
     emission_gpt2 = tracker_gpt2.stop()
+    emission_info_gpt2 = get_impact_tracker(tracker_gpt2, verbose=False)
     print("\n--------------------------------\n")
     print("Prompt:", prompt)
-    print(f"Generated ({len(output_ids[0])} tokens):", generated_text)
+    print(f"Generated ({nbr_tokens_generated} tokens):", generated_text)
     print(f"\n  > GPT-2 Prediction Emissions: {emission_gpt2:.2e} kg CO2eq")
 
-    return generated_text, emission_gpt2
+    return generated_text, nbr_tokens_generated, emission_info_gpt2

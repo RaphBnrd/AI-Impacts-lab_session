@@ -16,7 +16,7 @@ from utils.basics import (
     generate_digit_cvae, 
     train_PCA, generate_digit_pca,
     train_proba_pixel, generate_digit_proba_pixel, 
-
+    print_emission_streamlit
 )
 
 st.title("🎨 Image Generation")
@@ -134,48 +134,10 @@ if run_gen:
 
     st.header("Emission Reports")
 
-    def print_emission(emission_in):
-
-        labels = {
-            'run_name': "Experiment",
-            'nbr_parameters': "Number of Parameters",
-            'nbr_epochs': "Number of Epochs",
-            'total_training_time_sec': "Total Training Time (s)",
-            'final_train_loss': "Final Train Loss",
-            'final_test_loss': "Final Test Loss",
-            'final_train_accuracy': "Final Train Accuracy",
-            'final_test_accuracy': "Final Test Accuracy",
-            'total_emissions_kgCO2eq': "Total CO₂ Emissions (kg)",
-            'total_energy_kWh': "Total Energy (kWh)",
-            'total_cpu_energy_kWh': "Total CPU Energy (kWh)",
-            'total_gpu_energy_kWh': "Total GPU Energy (kWh)",
-            'total_ram_energy_kWh': "Total RAM Energy (kWh)",
-            'cpu_power_W': "CPU Power (W)",
-            'gpu_power_W': "GPU Power (W)",
-            'ram_power_W': "RAM Power (W)",
-            'cpu_model': "CPU Model",
-            'gpu_model': "GPU Model",
-            'total_water_L': "Total Water Usage (L)",
-            'ram_total_size': "Total RAM Size (GB)"
-        }
-
-        emission = emission_in.copy()
-        for key in emission:
-            if isinstance(emission[key], float):
-                if emission[key] < 0.01:
-                    emission[key] = f"{emission[key]:.2e}"
-                else:
-                    emission[key] = f"{emission[key]:.3f}"
-            if key not in labels:
-                labels[key] = key
-        emission = pd.DataFrame.from_dict(emission, orient='index', columns=['Value'])
-        emission.index = emission.index.map(labels)
-        st.table(emission)
-
     st.subheader("Training Emissions")
-    print_emission(emission_train)
+    print_emission_streamlit(emission_train)
     st.subheader("Generation Emissions")
-    print_emission(emission_gen)
+    print_emission_streamlit(emission_gen)
 
     st.header("Generated Images")
 

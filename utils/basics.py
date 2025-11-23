@@ -1,5 +1,6 @@
 from tqdm import tqdm
 import re
+import streamlit as st
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -56,6 +57,45 @@ def get_impact_tracker(tracker, verbose=False):
             print(f"{k}: {v}")
     return out
 
+def print_emission_streamlit(emission_in):
+
+    labels = {
+        'run_name': "Experiment",
+        'nbr_parameters': "Number of Parameters",
+        'nbr_epochs': "Number of Epochs",
+        'total_training_time_sec': "Total Training Time (s)",
+        'final_train_loss': "Final Train Loss",
+        'final_test_loss': "Final Test Loss",
+        'final_train_accuracy': "Final Train Accuracy",
+        'final_test_accuracy': "Final Test Accuracy",
+        'total_emissions_kgCO2eq': "Total CO₂ Emissions (kg)",
+        'total_energy_kWh': "Total Energy (kWh)",
+        'total_cpu_energy_kWh': "Total CPU Energy (kWh)",
+        'total_gpu_energy_kWh': "Total GPU Energy (kWh)",
+        'total_ram_energy_kWh': "Total RAM Energy (kWh)",
+        'cpu_power_W': "CPU Power (W)",
+        'gpu_power_W': "GPU Power (W)",
+        'ram_power_W': "RAM Power (W)",
+        'cpu_model': "CPU Model",
+        'gpu_model': "GPU Model",
+        'total_water_L': "Total Water Usage (L)",
+        'ram_total_size': "Total RAM Size (GB)"
+    }
+
+    emission = emission_in.copy()
+    for key in emission:
+        if isinstance(emission[key], float):
+            if emission[key] < 0.01:
+                emission[key] = f"{emission[key]:.2e}"
+            else:
+                emission[key] = f"{emission[key]:.3f}"
+        else:
+            emission[key] = str(emission[key])
+        if key not in labels:
+            labels[key] = key
+    emission = pd.DataFrame.from_dict(emission, orient='index', columns=['Value'])
+    emission.index = emission.index.map(labels)
+    st.table(emission)
 
 # ------------------------------------
 # TRAINING AND EVALUATION UTILITIES
