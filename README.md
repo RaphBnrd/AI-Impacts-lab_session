@@ -24,15 +24,13 @@ For the image-related tasks, we use the classic MNIST dataset of handwritten dig
 
 <!-- ![MNIST Dataset](images/01-MNIST_dataset.png) -->
 <!-- (1259 × 302) -> height = width * 302/1259 -->
-<!-- <img src="images/01-MNIST_dataset.png" alt="MNIST Dataset" height="100" aspect-ratio="1259:302"> -->
-<img src="images/01-MNIST_dataset.png" alt="MNIST Dataset" width="40%" >
+<img src="images/01-MNIST_dataset.png" alt="MNIST Dataset" width="60%" >
 
 ## 🏷️ Image Classification
 
 For classification, you can compare MLP and CNN models and track useful metrics during training — including how CO₂ emissions scale with the number of model parameters:
 <!-- (1457 × 804) -> height = width * 804/1457 -->
-<!-- <img src="images/02-Image_Classification-CO2_params.png" alt="MImage Classification CO2 Emissions" height="350" aspect-ratio="1457:804"> -->
-<img src="images/02-Image_Classification-CO2_params.png" alt="Image Classification CO2 Emissions" width="70%">
+<img src="images/02-Image_Classification-CO2_params.png" alt="Image Classification CO2 Emissions" width="80%">
 
 ## 🎨 Image Generation
 
@@ -43,19 +41,19 @@ Below is an example using a CVAE:
 
 <table>
 <tr>
-<td valign="top" width="10%">
+<td valign="top" width="20%">
   <strong>C-VAE Generated Images</strong><br>
   <!-- (81 × 844) -> height = width * 844/81 -->
-  <img src="images/03-Image_Generation-example_generations.png" alt="C-VAE Generated Images" height="300" width="166">
+  <img src="images/03-Image_Generation-example_generations.png" alt="C-VAE Generated Images" height="400" width="38">
 </td>
-<td valign="top" width="10%">
+<td valign="top" width="80%">
   <strong>C-VAE CO₂ Emissions (Training)</strong><br>
     <!-- (1067 × 222) -> height = width * 222/1067 -->
-  <img src="images/03-Image_Generation-train_emissions.png" alt="C-VAE Train Emissions" height="140"><br><br>
+  <img src="images/03-Image_Generation-train_emissions.png" alt="C-VAE Train Emissions" width="90%"><br><br>
 
   <strong>C-VAE CO₂ Emissions (Generation)</strong><br>
   <!-- (1067 × 222) -> height = width * 222/1067 -->
-  <img src="images/03-Image_Generation-generation_emissions.png" alt="C-VAE Generation Emissions" height="140">
+  <img src="images/03-Image_Generation-generation_emissions.png" alt="C-VAE Generation Emissions" width="90%">
 </td>
 </tr>
 </table>
@@ -63,12 +61,15 @@ Below is an example using a CVAE:
 
 ## 💬 Text Generation
 
-Finally, the text generation examples showcase emissions from inference using models like BERT (masked prediction) and GPT-2 (autoregressive generation):
+Finally, the text generation examples showcase emissions from inference using models like BERT (masked prediction) and GPT-2 (autoregressive generation). 
 
+Bert example on the sentence: `The capital of France is \[MASK\].`
 <!-- (1523 × 727) -> height = width * 727/1523 -->
-![BERT Example](images/04-Text_Generation-bert.png)
+<img src="images/04-Text_Generation-bert.png" alt="BERT Example" width="50%" >
+
+GPT-2 example on the prompt: `The future of AI is`
 <!-- (1012 × 912) -> height = width * 912/1012 -->
-![GPT-2 Example](images/04-Text_Generation-gpt2.png)
+<img src="images/04-Text_Generation-gpt2.png" alt="GPT-2 Example" width="50%" >
 
 # Setup
 
