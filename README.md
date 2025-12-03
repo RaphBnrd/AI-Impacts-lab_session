@@ -22,12 +22,17 @@ This project includes a variety of visual outputs to help you explore how differ
 
 For the image-related tasks, we use the classic MNIST dataset of handwritten digits:
 
-![MNIST Dataset](images/01-MNIST_dataset.png)
+<!-- ![MNIST Dataset](images/01-MNIST_dataset.png) -->
+<!-- (1259 × 302) -> height = width * 302/1259 -->
+<!-- <img src="images/01-MNIST_dataset.png" alt="MNIST Dataset" height="100" aspect-ratio="1259:302"> -->
+<img src="images/01-MNIST_dataset.png" alt="MNIST Dataset" width="40%" >
 
 ## 🏷️ Image Classification
 
 For classification, you can compare MLP and CNN models and track useful metrics during training — including how CO₂ emissions scale with the number of model parameters:
-![Image Classification CO2 Emissions](images/02-Image_Classification-CO2_params.png)
+<!-- (1457 × 804) -> height = width * 804/1457 -->
+<!-- <img src="images/02-Image_Classification-CO2_params.png" alt="MImage Classification CO2 Emissions" height="350" aspect-ratio="1457:804"> -->
+<img src="images/02-Image_Classification-CO2_params.png" alt="Image Classification CO2 Emissions" width="70%">
 
 ## 🎨 Image Generation
 
@@ -36,31 +41,33 @@ Each experiment includes the CO₂ emissions for both training and inference.
 
 Below is an example using a CVAE:
 
-<div style="display: flex; gap: 20px; align-items: flex-start;"> 
-    <div style="flex: 1;"> 
-        <strong>C-VAE Generated Images</strong>
-        <br> 
-        <img src="images/03-Image_Generation-example_generations.png" alt="C-VAE Generated Images" style="max-height: 400px;"> 
-    </div> 
-    <div style="flex: 8; display: flex; flex-direction: column; gap: 10px;"> 
-        <div> 
-            <strong>C-VAE CO₂ Emissions (Training)</strong>
-            <br>
-            <img src="images/03-Image_Generation-train_emissions.png" alt="C-VAE Train Emissions" style="max-height: 200px;">
-        </div>
-        <div>
-            <strong>C-VAE CO₂ Emissions (Generation)</strong>
-            <br>
-            <img src="images/03-Image_Generation-generation_emissions.png" alt="C-VAE Generation Emissions" style="max-height: 200px;">
-        </div>
-    </div>
-</div>
+<table>
+<tr>
+<td valign="top" width="10%">
+  <strong>C-VAE Generated Images</strong><br>
+  <!-- (81 × 844) -> height = width * 844/81 -->
+  <img src="images/03-Image_Generation-example_generations.png" alt="C-VAE Generated Images" height="300" width="166">
+</td>
+<td valign="top" width="10%">
+  <strong>C-VAE CO₂ Emissions (Training)</strong><br>
+    <!-- (1067 × 222) -> height = width * 222/1067 -->
+  <img src="images/03-Image_Generation-train_emissions.png" alt="C-VAE Train Emissions" height="140"><br><br>
+
+  <strong>C-VAE CO₂ Emissions (Generation)</strong><br>
+  <!-- (1067 × 222) -> height = width * 222/1067 -->
+  <img src="images/03-Image_Generation-generation_emissions.png" alt="C-VAE Generation Emissions" height="140">
+</td>
+</tr>
+</table>
+
 
 ## 💬 Text Generation
 
 Finally, the text generation examples showcase emissions from inference using models like BERT (masked prediction) and GPT-2 (autoregressive generation):
 
+<!-- (1523 × 727) -> height = width * 727/1523 -->
 ![BERT Example](images/04-Text_Generation-bert.png)
+<!-- (1012 × 912) -> height = width * 912/1012 -->
 ![GPT-2 Example](images/04-Text_Generation-gpt2.png)
 
 # Setup
